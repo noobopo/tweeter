@@ -50,7 +50,6 @@ export const userLogin = async (req, res) => {
         success: false,
       });
     }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -59,14 +58,14 @@ export const userLogin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.secret, {
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET, {
       expiresIn: "1d",
     });
 
     return res.status(200).cookie("token", token, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
-      secure:true // 1 day
+      secure:true
     }).json({
       message: `Welcome back ${user.name}`,
       success: true,
