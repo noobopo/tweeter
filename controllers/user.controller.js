@@ -43,13 +43,14 @@ export const userLogin = async (req, res) => {
       });
     }
 
-    let user = await User.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({
         message: "User does not exist!",
         success: false,
       });
     }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -62,13 +63,19 @@ export const userLogin = async (req, res) => {
       expiresIn: "1d",
     });
 
-    return res.status(200).cookie("token", token, {
-      maxAge: 24 * 60 * 60 * 1000
-    }).json({
-      message: `Welcome back ${user.name}`,
-      success: true,
-      user
-    });
+    return res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // true on Render
+        sameSite: "none", // required for frontend-backend on different domains
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      })
+      .json({
+        message: `Welcome back ${user.name}`,
+        success: true,
+        user,
+      });
 
   } catch (error) {
     console.log("Login error:", error);
